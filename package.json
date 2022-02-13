@@ -6,8 +6,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build:light": "rm -f dist/* && webpack --env COLORSCHEME=light --config webpack.config.js --mode production",
-    "build:dark": "rm -f dist/* && webpack --env COLORSCHEME=dark --config webpack.config.js --mode production"
+    "build": "rm -f dist/* && webpack --env --config webpack.config.js --mode production"
   },
   "dependencies": {
     "jquery": "3.5.1"

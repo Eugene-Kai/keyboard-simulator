@@ -9,10 +9,7 @@ const version = PACKAGE.version;
 
 module.exports = function (env) {
   const config = {
-    entry: [
-      path.resolve(__dirname, `src/styles/styles_${env.COLORSCHEME || "light"}.css`),
-      path.resolve(__dirname, "src/index.ts"),
-    ],
+    entry: [path.resolve(__dirname, `src/styles/styles.css`), path.resolve(__dirname, "src/index.ts")],
     output: {
       filename: `keyboard_${version}.js`,
       path: path.resolve(__dirname, "dist"),

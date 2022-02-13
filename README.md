@@ -2,7 +2,7 @@
 
 ## About The Project
 
-Keyboard Simulator. Available types of keyboards - simple text(en and ru langs), number and phone.
+Touchable Sensor Keyboard. Available types of keyboards - simple text(en and ru langs), number and phone.
 
 ### Built With
 
@@ -16,16 +16,17 @@ Keyboard Simulator. Available types of keyboards - simple text(en and ru langs),
    ```sh
    yarn install or npm install
    ```
-2. Build project depending on a color scheme you prefer
+2. Build project
    ```sh
-   yarn build:light or yarn build:dark
+   yarn build or npm run build
    ```
 
 ## Getting Started
 
 1. Set `key-type` param into your input (text, number or phone)
 2. Set `key-lang` param into your text input for default keyboard (en or ru)
-3. Add .css and .js files from `dist` folder into your page
+3. Set `key-mode` param into your text input for default color scheme (light or dark)
+4. Add .css and .js files from `dist` folder into your page
 
 <!-- LICENSE -->
 
@@ -60,4 +61,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Eugene - eugene1kliuiev@gmail.com
 
-Project Link: [https://github.com/Eugene-Kai/keyboard-simulator](https://github.com/Eugene-Kai/keyboard-simulator)
+Project Link: [https://github.com/Eugene-Kai/touchable-sensor-keyboard](https://github.com/Eugene-Kai/touchable-sensor-keyboard)

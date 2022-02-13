@@ -4,7 +4,7 @@ import numberKit from './kits/number.json';
 import phoneKit from './kits/phone.json';
 import textEnKit from './kits/text_en.json';
 import textRuKit from './kits/text_ru.json';
-import { createElement, getPlacement, getRandomId, getSpecialSymbol } from './utils';
+import { createElement, getPlacement, getRandomId, getSpecialSymbol, setObserver } from './utils';
 
 let keyboardTimeout: any = null;
 
@@ -18,29 +18,31 @@ $(() => {
   if (keys.length === 0) return;
 
   for (let i = 0; i < keys.length; i++) {
-    const type = $(keys[i]).attr("key-type");
+    const item = keys[i];
+
+    const type = $(item).attr("key-type");
+    const mode = $(item).attr("key-mode") || "light";
 
     if (type === "text") {
-      const lang = $(keys[i]).attr("key-lang");
+      const lang = $(item).attr("key-lang");
 
       if (lang === "ru") {
-        setTextKeyboard(keys[i], textRuKit, "ru");
+        setTextKeyboard(item, textRuKit, "ru", mode);
       } else {
-        setTextKeyboard(keys[i], textEnKit, "en");
+        setTextKeyboard(item, textEnKit, "en", mode);
       }
     } else if (type === "number") {
-      setNumberKeyboard(keys[i], numberKit);
+      setNumberKeyboard(item, numberKit, mode);
     } else if (type === "phone") {
-      setNumberKeyboard(keys[i], phoneKit);
+      setNumberKeyboard(item, phoneKit, mode);
     }
   }
 });
 
-// set text keyboard
-function setTextKeyboard(element: JQuery<HTMLElement>, defaultKit: string[][][], lang: "en" | "ru") {
+function setTextKeyboard(element: JQuery<HTMLElement>, defaultKit: string[][][], lang: "en" | "ru", mode: string) {
   const newId = getRandomId();
 
-  const container = createElement("div", { class: "keyboard-block", id: newId, lang });
+  const container = createElement("div", { class: `keyboard-block keyboard-${mode}`, id: newId, "key-lang": lang });
   const content = collectTextContainer(defaultKit);
   container.append(content);
 
@@ -57,7 +59,7 @@ function setTextKeyboard(element: JQuery<HTMLElement>, defaultKit: string[][][],
     } else if (newValue === "space") {
       element.val((currentValue += " "));
     } else if (newValue === "shift") {
-      const lang = $(`#${newId}`).attr("lang");
+      const lang = $(`#${newId}`).attr("key-lang");
       const shifted = $(`#${newId} button[data-value="shift"]`).attr("shifted") === "true";
 
       const newContent = collectTextContainer(lang === "ru" ? textRuKit : textEnKit, !shifted);
@@ -69,19 +71,19 @@ function setTextKeyboard(element: JQuery<HTMLElement>, defaultKit: string[][][],
         $(`#${newId} button[data-value="shift"]`).attr("shifted", "true");
       }
     } else if (newValue === "en" || newValue === "ru") {
-      const lang = $(`#${newId}`).attr("lang");
+      const lang = $(`#${newId}`).attr("key-lang");
 
       const newContent = collectTextContainer(lang === "en" ? textRuKit : textEnKit);
       $(`#${newId}`).html(newContent.prop("outerHTML"));
 
-      $(`#${newId}`).attr("lang", lang === "en" ? "ru" : "en");
+      $(`#${newId}`).attr("key-lang", lang === "en" ? "ru" : "en");
     } else {
       element.val(currentValue + newValue);
 
       const shifted = $(`#${newId} button[data-value=shift]`).attr("shifted");
 
       if (shifted) {
-        const lang = $(`#${newId}`).attr("lang");
+        const lang = $(`#${newId}`).attr("key-lang");
 
         const newContent = collectTextContainer(lang === "ru" ? textRuKit : textEnKit);
 
@@ -122,13 +124,33 @@ function setTextKeyboard(element: JQuery<HTMLElement>, defaultKit: string[][][],
   });
 
   $(document.body).append(container.prop("outerHTML"));
+
+  // monitor changing key mode dynamically
+  setObserver({
+    element,
+    callback: (mutList: MutationRecord[]) => {
+      for (let i = 0; i < mutList.length; i++) {
+        const mutation = mutList[i];
+        if (mutation.attributeName === "key-mode") {
+          const prevValue = mutation.oldValue;
+          const newValue = element.attr("key-mode");
+
+          if (newValue !== prevValue) {
+            $(`#${newId}`)
+              .removeClass(`keyboard-${prevValue === "dark" ? "dark" : "light"}`)
+              .addClass(`keyboard-${newValue === "dark" ? "dark" : "light"}`);
+          }
+        }
+      }
+    },
+    options: { attributes: true, attributeOldValue: true },
+  });
 }
 
-// set a number keyboard
-function setNumberKeyboard(element: JQuery<HTMLElement>, kit: string[][]) {
+function setNumberKeyboard(element: JQuery<HTMLElement>, kit: string[][], mode: string) {
   const newId = getRandomId();
 
-  const container = createElement("div", { class: "keyboard-block", id: newId });
+  const container = createElement("div", { class: `keyboard-block keyboard-${mode}`, id: newId });
 
   for (let i = 0; i < kit.length; i += 1) {
     const rowValues = kit[i];
@@ -137,7 +159,7 @@ function setNumberKeyboard(element: JQuery<HTMLElement>, kit: string[][]) {
     for (let y = 0; y < rowValues.length; y += 1) {
       const value = rowValues[y];
       const button = createElement("button", { class: "keyboard-button" });
-      button.attr("data-value", value);
+      button.attr("data-value", value); // add a data-value attribute to the element as a main value
 
       if (value === "del") {
         const sign = getSpecialSymbol("backspace");
@@ -203,6 +225,27 @@ function setNumberKeyboard(element: JQuery<HTMLElement>, kit: string[][]) {
   });
 
   $(document.body).append(container.prop("outerHTML"));
+
+  // monitor changing key mode dynamically
+  setObserver({
+    element,
+    callback: (mutList: MutationRecord[]) => {
+      for (let i = 0; i < mutList.length; i++) {
+        const mutation = mutList[i];
+        if (mutation.attributeName === "key-mode") {
+          const prevValue = mutation.oldValue;
+          const newValue = element.attr("key-mode");
+
+          if (newValue !== prevValue) {
+            $(`#${newId}`)
+              .addClass(`keyboard-${newValue === "light" ? "dark" : "light"}`)
+              .removeClass(`keyboard-${prevValue === "light" ? "dark" : "light"}`);
+          }
+        }
+      }
+    },
+    options: { attributes: true, attributeOldValue: true },
+  });
 }
 
 function collectTextContainer(kit: string[][][], shifted?: boolean): JQuery<HTMLElement> {

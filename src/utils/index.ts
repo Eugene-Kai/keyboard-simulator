@@ -64,3 +64,13 @@ export const getSpecialSymbol = (type: Symbol): string => {
 
   return "";
 };
+
+type ObserverProps = {
+  element: JQuery<HTMLElement>;
+  callback: (mutList: MutationRecord[]) => void;
+  options?: { [key: string]: string | number | boolean };
+};
+export const setObserver = ({ element, callback, options }: ObserverProps): void => {
+  const observer = new MutationObserver(callback);
+  observer.observe(element.get(0), options);
+};
